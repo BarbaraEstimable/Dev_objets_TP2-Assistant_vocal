@@ -57,84 +57,88 @@ def main():
     r.energy_threshold = 1200
     r.pause_threshold = 0.8
 
-    texte_hotword = ecouter_phrase(
-        recognizer=r,
-        micro=MIC_INDEX,
-        message_ecoute="Dis le mot d'activation...",
-        timeout=8,
-        phrase_time_limit=3
-    )
+    while True:
+        texte_hotword = ecouter_phrase(
+            recognizer=r,
+            micro=MIC_INDEX,
+            message_ecoute="Dis le mot d'activation...",
+            timeout=8,
+            phrase_time_limit=3
+        )
 
-    if texte_hotword is None:
-        return
+        if texte_hotword is None:
+            continue
 
-    if HOTWORD not in texte_hotword:
-        print("Hotword non detecte")
-        return
+        if HOTWORD not in texte_hotword:
+            print("Hotword non detecte")
+            continue
 
-    print("Hotword detecte")
-    speak("Je vous ecoute")
+        print("Hotword detecte")
+        speak("Je vous ecoute")
 
-    texte_commande = ecouter_phrase(
-        recognizer=r,
-        micro=MIC_INDEX,
-        message_ecoute="Dis la commande...",
-        timeout=8,
-        phrase_time_limit=6
-    )
+        texte_commande = ecouter_phrase(
+            recognizer=r,
+            micro=MIC_INDEX,
+            message_ecoute="Dis la commande...",
+            timeout=8,
+            phrase_time_limit=6
+        )
 
-    if texte_commande is None:
-        speak("Je n ai pas compris la commande")
-        return
+        if texte_commande is None:
+            speak("Je n ai pas compris la commande")
+            continue
 
-    print("Commande finale :", texte_commande)
-    intention = detecter_intention(texte_commande)
-    print("Intention detectee :", intention)
-    if intention == "allumer_lampe":
-        publier_commande("on")
-    elif intention == "eteindre_lampe":
-        publier_commande("off")
-    elif intention == "clignoter_lampe":
-        publier_commande("blink")
-    elif intention == "mode_nuit":
-        publier_commande("night")
-    if intention == "allumer_lampe":
-        speak("Lampe allumee")
-    elif intention == "eteindre_lampe":
-        speak("Lampe eteinte")
-    elif intention == "clignoter_lampe":
-        speak("Clignotement active")
-    elif intention == "etat_lampe":
-        etat = lire_etat()
+        print("Commande finale :", texte_commande)
 
-        if etat == "on":
-            speak("La lampe est allumee")
-        elif etat == "off":
-            speak("La lampe est eteinte")
-        elif etat == "blink":
-            speak("La lampe est en clignotement")
-        elif etat == "night":
-            speak("La lampe est en mode nuit")
-        else:
-            speak("Je ne connais pas l etat actuel")
+        intention = detecter_intention(texte_commande)
+        print("Intention detectee :", intention)
 
-    resultat = "ok"
-
-    if intention == "allumer_lampe":
-        resultat = "on"
-    elif intention == "eteindre_lampe":
-        resultat = "off"
-    elif intention == "clignoter_lampe":
-        resultat = "blink"
-    elif intention == "mode_nuit":
-        resultat = "night"
-    elif intention == "etat_lampe":
-        resultat = "statut"
-    else:
         resultat = "inconnue"
 
-    journaliser_commande(texte_commande, intention, resultat)
-    print("Commande journalisee en base")
+        if intention == "allumer_lampe":
+            publier_commande("on")
+            speak("Lampe allumee")
+            resultat = "on"
+
+        elif intention == "eteindre_lampe":
+            publier_commande("off")
+            speak("Lampe eteinte")
+            resultat = "off"
+
+        elif intention == "clignoter_lampe":
+            publier_commande("blink")
+            speak("Clignotement active")
+            resultat = "blink"
+
+        elif intention == "mode_nuit":
+            publier_commande("night")
+            speak("Mode nuit active")
+            resultat = "night"
+
+        elif intention == "etat_lampe":
+            etat = lire_etat()
+
+            if etat == "on":
+                speak("La lampe est allumee")
+            elif etat == "off":
+                speak("La lampe est eteinte")
+            elif etat == "blink":
+                speak("La lampe est en clignotement")
+            elif etat == "night":
+                speak("La lampe est en mode nuit")
+            else:
+                speak("Je ne connais pas le statut")
+
+            resultat = "statut"
+
+        else:
+            speak("Commande inconnue")
+            resultat = "inconnue"
+
+        journaliser_commande(texte_commande, intention, resultat)
+        print("Commande journalisee en base")
+        print("-" * 40)
+
 
 if __name__ == "__main__":
     main()
